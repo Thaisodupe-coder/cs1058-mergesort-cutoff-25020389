@@ -46,7 +46,7 @@ cutoff-benchmark-merge-sort-/
 | `bieudo2_so_sanh_cutoff.png` | So sánh thời gian giữa `CUTOFF = 7` và `CUTOFF = 10` trên dữ liệu ngẫu nhiên (`RANDOM`). |
 | `bieudo3_so_sanh_du_lieu.png` | Ảnh hưởng của các loại phân phối dữ liệu lên thời gian chạy với `CUTOFF` tối ưu. |
 
-## 9. Liên hệ & tài liệu tham khảo
+## 6. Liên hệ & tài liệu tham khảo
 - **Giáo trình**: *Algorithms, 4th Edition* – Robert Sedgewick & Kevin Wayne.
 - **Mã nguồn**: xem chi tiết trong thư mục `src/`.
 - **Báo cáo chi tiết**: `Baocao.docx` (Word/PDF).
