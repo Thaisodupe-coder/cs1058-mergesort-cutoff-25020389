@@ -46,28 +46,6 @@ cutoff-benchmark-merge-sort-/
 | `bieudo2_so_sanh_cutoff.png` | So sánh thời gian giữa `CUTOFF = 7` và `CUTOFF = 10` trên dữ liệu ngẫu nhiên (`RANDOM`). |
 | `bieudo3_so_sanh_du_lieu.png` | Ảnh hưởng của các loại phân phối dữ liệu lên thời gian chạy với `CUTOFF` tối ưu. |
 
-## 6. Hướng dẫn biên dịch & chạy thí nghiệm
-### Bước 1: Biên dịch mã nguồn Java
-```bash
-javac -cp ".;lib/algs4.jar" src/*.java
-```
-### Bước 2: Chạy benchmark
-```bash
-java -cp "src;lib/algs4.jar" CutoffBenchmark
-```
-- Các tham số tùy chọn: `java -cp "src;lib/algs4.jar" CutoffBenchmark [trials] [baseSeed]`
-- Kết quả sẽ được ghi vào `data/ket_qua_thuc_nghiem_algs4.csv`.
-
-## 7. Tái lập & kích thước dữ liệu
-- **Seed cố định**: `baseSeed = 25020389` → mọi máy tính tạo ra cùng một bộ dữ liệu.
-- **Không lưu toàn bộ dataset**: Các mảng lớn (đến `N = 1,000,000`) được sinh tại thời gian chạy, tránh việc lưu các file dữ liệu khổng lồ (>150 MB) trong repo.
-
-## 8. Kết quả chính
-- `CUTOFF` tối ưu trên máy thử nghiệm nằm trong khoảng **8‑12** (đối với `N = 1,000,000`).
-- `CUTOFF = 10` nhanh hơn `CUTOFF = 7` khoảng **20.9 %** trên dữ liệu ngẫu nhiên `RANDOM`.
-- Phân phối `NEARLY_SORTED` hưởng lợi rất lớn từ `InsertionSort` → `CUTOFF` lớn (30‑40) cho thời gian nhanh nhất.
-- Phân phối `REVERSED` giảm hiệu năng khi `CUTOFF` quá lớn vì độ phức tạp O(N²) của `InsertionSort`.
-
 ## 9. Liên hệ & tài liệu tham khảo
 - **Giáo trình**: *Algorithms, 4th Edition* – Robert Sedgewick & Kevin Wayne.
 - **Mã nguồn**: xem chi tiết trong thư mục `src/`.
