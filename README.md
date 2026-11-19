@@ -1,75 +1,77 @@
-# Nghiên Cứu Thực Nghiệm: CUTOFF Benchmark Cho Thuật Toán Merge Sort
+# Nghiên cứu thực nghiệm: CUTOFF Benchmark cho Merge Sort
 
-Dự án thực nghiệm xác định giá trị ngưỡng **CUTOFF** tối ưu khi chuyển từ Merge Sort sang Insertion Sort đối với các mảng con kích thước nhỏ, dựa trên nội dung bài giảng môn Cấu trúc dữ liệu và Giải thuật (*Algorithms, 4th Edition* - Robert Sedgewick & Kevin Wayne).
+## 1. Tổng quan dự án
+Dự án này thực hiện **benchmark** để xác định giá trị ngưỡng `CUTOFF` tối ưu khi chuyển từ **Merge Sort** sang **Insertion Sort** trên các mảng con kích thước nhỏ. Các thí nghiệm được tiến hành trên bốn loại phân phối dữ liệu với seed cố định `25020389` để đảm bảo **tái lập** kết quả.
 
----
-
-## 1. Cấu Trúc Dự Án
-
-```text
+## 2. Cấu trúc thư mục
+```
 cutoff-benchmark-merge-sort-/
-├── src/
-│   ├── MergeCutoff.java          # Cài đặt Merge Sort kết hợp Insertion Sort (CUTOFF & Skip merge)
-│   ├── DatasetGenerator.java     # Bộ sinh dữ liệu theo 4 phân phối với Random Seed cố định
-│   └── CutoffBenchmark.java      # Script tự động chạy benchmark, warm-up và xuất CSV
-├── lib/
-│   └── algs4.jar                 # Thư viện thuật toán chuẩn của giáo trình
-├── data/
-│   ├── ket_qua_thuc_nghiem_algs4.csv  # Kết quả đo đạc thực tế (Mean, StdDev, Min, Max)
-│   └── *.txt                     # Các file mẫu dữ liệu đại diện
-├── scripts/
-│   └── plot_results.py           # Script Python vẽ 3 biểu đồ chuẩn kỹ thuật
-├── results/
-│   └── charts/                   # Thư mục chứa hình ảnh biểu đồ kết quả
-├── Baocao.docx                   # Báo cáo thí nghiệm chi tiết (Word / PDF)
-└── README.md                     # Tài liệu hướng dẫn duy nhất của dự án
+├── src/                     # Mã nguồn Java
+│   ├── MergeCutoff.java          # Triển khai Merge Sort + Insertion Sort (CUTOFF & Skip merge)
+│   ├── DatasetGenerator.java     # Sinh dữ liệu 4 loại phân phối, seed cố định
+│   └── CutoffBenchmark.java      # Chương trình chạy benchmark, warm‑up, ghi CSV
+├── lib/                     # Thư viện algs4.jar (Sedgewick & Wayne)
+├── data/                    # Kết quả đo đạc và mẫu dữ liệu
+│   ├── ket_qua_thuc_nghiem_algs4.csv   # CSV kết quả các thí nghiệm
+│   └── mẫu_dữ_liệu.txt          # Một vài file mẫu (đại diện)
+├── charts/                  # Hình ảnh PNG được tạo từ CSV
+│   ├── bieudo1_cutoff_vs_time.png
+│   ├── bieudo2_so_sanh_cutoff.png
+│   └── bieudo3_so_sanh_du_lieu.png
+├── README.md                # Tài liệu hướng dẫn duy nhất (bản này)
+└── Baocao.docx              # Báo cáo chi tiết (Word/PDF)
 ```
 
----
+## 3. Mô tả mã nguồn
+- **`MergeCutoff.java`**: triển khai thuật toán `MergeSort` với tùy chọn ngưỡng `CUTOFF`. Khi kích thước mảng con ≤ `CUTOFF` thì chuyển sang `InsertionSort`. Ngoài ra, cung cấp phương thức `skipMerge` để bỏ qua bước merge khi không cần thiết.
+- **`DatasetGenerator.java`**: sinh mảng theo bốn phân phối:
+  1. `RANDOM` – phân phối đồng đều `U(0,1)`.
+  2. `NEARLY_SORTED` – 99% phần tử đã sắp, 1% hoán vị ngẫu nhiên.
+  3. `REVERSED` – mảng giảm dần (trường hợp xấu nhất).
+  4. `FEW_UNIQUE` – chỉ 10 giá trị duy nhất.
+  Dữ liệu được tạo trong bộ nhớ và không ghi ra đĩa, giúp giảm dung lượng dự án.
+- **`CutoffBenchmark.java`**: thực hiện:
+  1. **Warm‑up** JVM 25 lần.
+  2. Đo thời gian chạy `CutoffSort` cho mỗi kết hợp `CUTOFF`, `N`, và loại dữ liệu.
+  3. Lặp `trials = 10` lần cho mỗi cấu hình, ghi `mean`, `stddev`, `min`, `max` vào CSV.
 
-## 2. Thiết Kế Thí Nghiệm & Bộ Dữ Liệu
+## 4. Dữ liệu (`data/`)
+- **`ket_qua_thuc_nghiem_algs4.csv`**: chứa các cột `CUTOFF,N,distribution,trial,mean,stddev,min,max`. Đây là nguồn duy nhất để vẽ biểu đồ.
+- Các file mẫu `.txt` chỉ dùng để minh họa cách dữ liệu trông như thế nào; thực tế dữ liệu được sinh động trong bộ nhớ.
 
-* **Biến độc lập (CUTOFF):** Quét mịn quanh vùng ứng viên và mở rộng: $\{1, 2, 4, 6, 7, 8, 9, 10, 12, 15, 20, 30, 40\}$.
-* **Kích thước mảng ($N$):** $125.000$, $250.000$, $500.000$, $1.000.000$.
-* **4 Loại phân phối dữ liệu:**
-  1. `RANDOM`: Phân phối đều ngẫu nhiên $U(0, 1)$.
-  2. `NEARLY_SORTED`: Mảng có thứ tự bị hoán vị ngẫu nhiên 1% phần tử.
-  3. `REVERSED`: Mảng giảm dần hoàn toàn (trường hợp xấu nhất của Insertion Sort).
-  4. `FEW_UNIQUE`: Mảng chỉ chứa 10 giá trị phân biệt $\{0, 1, ..., 9\}$.
-* **Tính tái lập (Deterministic Seed):** Cố định `baseSeed = 25020389`. Dữ liệu sinh ra trên bộ nhớ RAM hoàn toàn đồng nhất $100\%$ giữa các lần chạy và trên mọi máy tính khác nhau.
-* **Chính sách dữ liệu nộp bài:** Để tối ưu dung lượng nộp bài (tránh file phình to hàng trăm Megabytes gây lỗi upload lên hệ thống LMS/Git), benchmark chạy trực tiếp dữ liệu trên RAM. Thư mục `data/` lưu trữ file kết quả đo thô `ket_qua_thuc_nghiem_algs4.csv` và các file mẫu đại diện.
-* **Kiểm soát sai số:** Có 25 lượt chạy JVM Warm-up trước khi đo, mỗi cấu hình đo 10 lần lặp độc lập (`trials = 10`) trên cùng bản sao mảng (`System.arraycopy`).
+## 5. Biểu đồ (`charts/`)
+| Tên file | Nội dung |
+|---|---|
+| `bieudo1_cutoff_vs_time.png` | Thời gian chạy vs. giá trị `CUTOFF` cho mỗi kích thước mảng và phân phối dữ liệu. |
+| `bieudo2_so_sanh_cutoff.png` | So sánh thời gian giữa `CUTOFF = 7` và `CUTOFF = 10` trên dữ liệu ngẫu nhiên (`RANDOM`). |
+| `bieudo3_so_sanh_du_lieu.png` | Ảnh hưởng của các loại phân phối dữ liệu lên thời gian chạy với `CUTOFF` tối ưu. |
 
----
-
-## 3. Hướng Dẫn Biên Dịch & Chạy Thí Nghiệm
-
+## 6. Hướng dẫn biên dịch & chạy thí nghiệm
 ### Bước 1: Biên dịch mã nguồn Java
 ```bash
 javac -cp ".;lib/algs4.jar" src/*.java
 ```
-
-### Bước 2: Chạy thí nghiệm Benchmark
-Lệnh này sẽ tự động chạy đo lường và cập nhật kết quả vào `data/ket_qua_thuc_nghiem_algs4.csv`:
+### Bước 2: Chạy benchmark
 ```bash
 java -cp "src;lib/algs4.jar" CutoffBenchmark
 ```
-*(Tùy chọn truyền tham số dòng lệnh: `java -cp "src;lib/algs4.jar" CutoffBenchmark [trials] [baseSeed]`)*
+- Các tham số tùy chọn: `java -cp "src;lib/algs4.jar" CutoffBenchmark [trials] [baseSeed]`
+- Kết quả sẽ được ghi vào `data/ket_qua_thuc_nghiem_algs4.csv`.
 
-### Bước 3: Vẽ biểu đồ kết quả (Tùy chọn)
-Yêu cầu Python đã cài `pandas` và `matplotlib`:
-```bash
-pip install pandas matplotlib
-python scripts/plot_results.py
-```
-Biểu đồ sẽ được tự động xuất ra thư mục `results/charts/`.
+## 7. Tái lập & kích thước dữ liệu
+- **Seed cố định**: `baseSeed = 25020389` → mọi máy tính tạo ra cùng một bộ dữ liệu.
+- **Không lưu toàn bộ dataset**: Các mảng lớn (đến `N = 1,000,000`) được sinh tại thời gian chạy, tránh việc lưu các file dữ liệu khổng lồ (>150 MB) trong repo.
+
+## 8. Kết quả chính
+- `CUTOFF` tối ưu trên máy thử nghiệm nằm trong khoảng **8‑12** (đối với `N = 1,000,000`).
+- `CUTOFF = 10` nhanh hơn `CUTOFF = 7` khoảng **20.9 %** trên dữ liệu ngẫu nhiên `RANDOM`.
+- Phân phối `NEARLY_SORTED` hưởng lợi rất lớn từ `InsertionSort` → `CUTOFF` lớn (30‑40) cho thời gian nhanh nhất.
+- Phân phối `REVERSED` giảm hiệu năng khi `CUTOFF` quá lớn vì độ phức tạp O(N²) của `InsertionSort`.
+
+## 9. Liên hệ & tài liệu tham khảo
+- **Giáo trình**: *Algorithms, 4th Edition* – Robert Sedgewick & Kevin Wayne.
+- **Mã nguồn**: xem chi tiết trong thư mục `src/`.
+- **Báo cáo chi tiết**: `Baocao.docx` (Word/PDF).
 
 ---
-
-## 4. Tóm Tắt Kết Quả Chính
-
-* **CUTOFF tối ưu trên máy thử nghiệm:** Nằm trong khoảng **$8 - 12$** (với $N = 1.000.000$, $CUTOFF = 12$ đạt thời gian nhanh nhất: $0.6227$ s).
-* **So sánh CUTOFF = 7 vs CUTOFF = 10:** 
-  * $CUTOFF = 10$ ($0.6378$ s) nhanh hơn và ổn định hơn $CUTOFF = 7$ ($0.8070$ s) khoảng **$20.9\%$** trên dữ liệu ngẫu nhiên $N = 1.000.000$.
-  * Phản ánh đúng sự cải tiến của giáo trình mới, phù hợp với kiến trúc CPU hiện đại có Cache L1/L2 dung lượng lớn.
-* **Đặc tính dữ liệu:** Dữ liệu `NEARLY_SORTED` tận dụng tối đa lợi thế của Insertion Sort nên CUTOFF lớn ($30 - 40$) chạy rất nhanh; ngược lại dữ liệu `REVERSED` bị giảm hiệu năng khi CUTOFF quá lớn do độ phức tạp $O(N^2)$.
+*Đây là README duy nhất của dự án, viết bằng tiếng Việt, các thuật ngữ chuyên ngành giữ nguyên tiếng Anh và giải thích ngắn gọn trong ngoặc.*
